@@ -1,4 +1,4 @@
-var Body = require('ngraph.physics.primitives').Body3d;
+var Body = require('ngraph.physics.primitives').Body4d;
 var Benchmark = require('benchmark');
 
 var createQuadTree = require('../'),
@@ -49,8 +49,10 @@ function createNewBody(random, max){
   body.force.x = random.nextDouble();
   body.force.y = random.nextDouble();
   body.force.z = random.nextDouble();
+  body.force.t = random.nextDouble();
   body.pos.x = (max - random.next(max)) * 0.5;
   body.pos.y = (max - random.next(max)) * 0.5;
   body.pos.z = (max - random.next(max)) * 0.5;
+  body.pos.t = (max - random.next(max)) * 0.5;
   return body;
 }
