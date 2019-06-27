@@ -1,5 +1,5 @@
 /**
- * This is Barnes Hut simulation algorithm for 3d case. Implementation
+ * This is Barnes Hut simulation algorithm for 4d case. Implementation
  * is highly optimized (avoids recusion and gc pressure)
  *
  * http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
@@ -32,17 +32,25 @@ module.exports = function(options) {
       // To avoid pressure on GC we reuse nodes.
       var node = nodesCache[currentInCache];
       if (node) {
-        node.quad0 = null;
-        node.quad4 = null;
-        node.quad1 = null;
-        node.quad5 = null;
-        node.quad2 = null;
-        node.quad6 = null;
-        node.quad3 = null;
-        node.quad7 = null;
+        node.quad0  = null;
+        node.quad4  = null;
+        node.quad8  = null;
+        node.quad12 = null;
+        node.quad1  = null;
+        node.quad5  = null;
+        node.quad9  = null;
+        node.quad13 = null;
+        node.quad2  = null;
+        node.quad6  = null;
+        node.quad10 = null;
+        node.quad14 = null;
+        node.quad3  = null;
+        node.quad7  = null;
+        node.quad11 = null;
+        node.quad15 = null;
         node.body = null;
-        node.mass = node.massX = node.massY = node.massZ = 0;
-        node.left = node.right = node.top = node.bottom = node.front = node.back = 0;
+        node.mass = node.massX = node.massY = node.massZ = node.massT = 0;
+        node.left = node.right = node.top = node.bottom = node.front = node.back = node.past = node.future = 0;
       } else {
         node = new Node();
         nodesCache[currentInCache] = node;
@@ -69,10 +77,12 @@ module.exports = function(options) {
           var x = body.pos.x;
           var y = body.pos.y;
           var z = body.pos.z;
+          var t = body.pos.t;
           node.mass += body.mass;
           node.massX += body.mass * x;
           node.massY += body.mass * y;
           node.massZ += body.mass * z;
+          node.massT += body.mass * t;
 
           // Recursively insert the body in the appropriate quadrant.
           // But first find the appropriate quadrant.
@@ -82,7 +92,9 @@ module.exports = function(options) {
             top = node.top,
             bottom = (node.bottom + top) / 2,
             back = node.back,
-            front = (node.front + back) / 2;
+            front = (node.front + back) / 2,
+            past = node.past,
+            future = (node.future + past) / 2;
 
           if (x > right) { // somewhere in the eastern part.
             quadIdx += 1;
@@ -102,17 +114,31 @@ module.exports = function(options) {
             back = front;
             front = back + (back - oldBack);
           }
+          if (t > future) { // and in future part
+            quadIdx += 8;
+            var oldPast = past;
+            past = future;
+            future = past + (past - oldPast);
+          }
+
 
           var child = getChild(node, quadIdx);
           if (!child) {
             // The node is internal but this quadrant is not taken. Add subnode to it.
             child = newNode();
+
             child.left = left;
             child.top = top;
+
             child.right = right;
             child.bottom = bottom;
+
             child.back = back;
             child.front = front;
+
+            child.past = past;
+            child.future = future;
+
             child.body = body;
 
             setChild(node, quadIdx, child);
@@ -136,10 +162,12 @@ module.exports = function(options) {
               var dx = (node.right - node.left) * offset;
               var dy = (node.bottom - node.top) * offset;
               var dz = (node.front - node.back) * offset;
+              var dt = (node.future - node.past) * offset;
 
               oldBody.pos.x = node.left + dx;
               oldBody.pos.y = node.top + dy;
               oldBody.pos.z = node.back + dz;
+              oldBody.pos.t = node.back + dt;
               retriesCount -= 1;
               // Make sure we don't bump it out of the box. If we do, next iteration should fix it
             } while (retriesCount > 0 && isSamePosition(oldBody.pos, body.pos));
@@ -162,10 +190,11 @@ module.exports = function(options) {
     update = function(sourceBody) {
       var queue = updateQueue,
         v,
-        dx, dy, dz,
+        dx, dy, dz, dt,
         r, fx = 0,
         fy = 0,
         fz = 0,
+        ft = 0,
         queueLength = 1,
         shiftIdx = 0,
         pushIdx = 1;
@@ -186,14 +215,16 @@ module.exports = function(options) {
           dx = body.pos.x - sourceBody.pos.x;
           dy = body.pos.y - sourceBody.pos.y;
           dz = body.pos.z - sourceBody.pos.z;
-          r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          dt = body.pos.t - sourceBody.pos.t;
+          r = Math.sqrt(dx * dx + dy * dy + dz * dz + dt * dt);
 
           if (r === 0) {
             // Poor man's protection against zero distance.
             dx = (random.nextDouble() - 0.5) / 50;
             dy = (random.nextDouble() - 0.5) / 50;
             dz = (random.nextDouble() - 0.5) / 50;
-            r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            dt = (random.nextDouble() - 0.5) / 50;
+            r = Math.sqrt(dx * dx + dy * dy + dz * dz + dt * dt);
           }
 
           // This is standard gravitation force calculation but we divide
@@ -202,6 +233,7 @@ module.exports = function(options) {
           fx += v * dx;
           fy += v * dy;
           fz += v * dz;
+          ft += v * dt;
         } else if (differentBody) {
           // Otherwise, calculate the ratio s / r,  where s is the width of the region
           // represented by the internal node, and r is the distance between the body
@@ -209,8 +241,9 @@ module.exports = function(options) {
           dx = node.massX / node.mass - sourceBody.pos.x;
           dy = node.massY / node.mass - sourceBody.pos.y;
           dz = node.massZ / node.mass - sourceBody.pos.z;
+          dt = node.massT / node.mass - sourceBody.pos.t;
 
-          r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          r = Math.sqrt(dx * dx + dy * dy + dz * dz + dt * dt);
 
           if (r === 0) {
             // Sorry about code duplication. I don't want to create many functions
@@ -218,7 +251,8 @@ module.exports = function(options) {
             dx = (random.nextDouble() - 0.5) / 50;
             dy = (random.nextDouble() - 0.5) / 50;
             dz = (random.nextDouble() - 0.5) / 50;
-            r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            dt = (random.nextDouble() - 0.5) / 50;
+            r = Math.sqrt(dx * dx + dy * dy + dz * dz + dt * dt);
           }
 
           // If s / r < θ, treat this internal node as a single body, and calculate the
@@ -231,6 +265,7 @@ module.exports = function(options) {
             fx += v * dx;
             fy += v * dy;
             fz += v * dz;
+            ft += v * dt;
           } else {
             // Otherwise, run the procedure recursively on each of the current node's children.
 
@@ -275,6 +310,46 @@ module.exports = function(options) {
               queueLength += 1;
               pushIdx += 1;
             }
+            if (node.quad8) {
+              queue[pushIdx] = node.quad8;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad9) {
+              queue[pushIdx] = node.quad9;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad10) {
+              queue[pushIdx] = node.quad10;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad11) {
+              queue[pushIdx] = node.quad11;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad12) {
+              queue[pushIdx] = node.quad12;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad13) {
+              queue[pushIdx] = node.quad13;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad14) {
+              queue[pushIdx] = node.quad14;
+              queueLength += 1;
+              pushIdx += 1;
+            }
+            if (node.quad15) {
+              queue[pushIdx] = node.quad15;
+              queueLength += 1;
+              pushIdx += 1;
+            }
           }
         }
       }
@@ -282,15 +357,18 @@ module.exports = function(options) {
       sourceBody.force.x += fx;
       sourceBody.force.y += fy;
       sourceBody.force.z += fz;
+      sourceBody.force.t += ft;
     },
 
     insertBodies = function(bodies) {
       var x1 = Number.MAX_VALUE,
         y1 = Number.MAX_VALUE,
         z1 = Number.MAX_VALUE,
+        t1 = Number.MAX_VALUE,
         x2 = Number.MIN_VALUE,
         y2 = Number.MIN_VALUE,
         z2 = Number.MIN_VALUE,
+        t2 = Number.MIN_VALUE,
         i,
         max = bodies.length;
 
@@ -301,6 +379,7 @@ module.exports = function(options) {
         var x = pos.x;
         var y = pos.y;
         var z = pos.z;
+        var t = pos.t;
         if (x < x1) {
           x1 = x;
         }
@@ -319,14 +398,25 @@ module.exports = function(options) {
         if (z > z2) {
           z2 = z;
         }
+        if (t < t1) {
+          t1 = t;
+        }
+        if (t > t2) {
+          t2 = t;
+        }
       }
 
       // Squarify the bounds.
-      var maxSide = Math.max(x2 - x1, Math.max(y2 - y1, z2 - z1));
+      var maxSide = Math.max(
+        x2 - x1, Math.max(
+          y2 - y1, Math.max(
+            z2 - z1, t2 - t1
+        )));
 
       x2 = x1 + maxSide;
       y2 = y1 + maxSide;
       z2 = z1 + maxSide;
+      t2 = t1 + maxSide;
 
       currentInCache = 0;
       root = newNode();
@@ -336,6 +426,8 @@ module.exports = function(options) {
       root.bottom = y2;
       root.back = z1;
       root.front = z2;
+      root.past = t1;
+      root.future = t2;
 
       i = max - 1;
       if (i > 0) {
@@ -378,6 +470,14 @@ function getChild(node, idx) {
   if (idx === 5) return node.quad5;
   if (idx === 6) return node.quad6;
   if (idx === 7) return node.quad7;
+  if (idx === 8) return node.quad8;
+  if (idx === 9) return node.quad9;
+  if (idx === 10) return node.quad10;
+  if (idx === 11) return node.quad11;
+  if (idx === 12) return node.quad12;
+  if (idx === 13) return node.quad13;
+  if (idx === 14) return node.quad14;
+  if (idx === 15) return node.quad15;
   return null;
 }
 
@@ -390,4 +490,12 @@ function setChild(node, idx, child) {
   else if (idx === 5) node.quad5 = child;
   else if (idx === 6) node.quad6 = child;
   else if (idx === 7) node.quad7 = child;
+  else if (idx === 8) node.quad8 = child;
+  else if (idx === 9) node.quad9 = child;
+  else if (idx === 10) node.quad10 = child;
+  else if (idx === 11) node.quad11 = child;
+  else if (idx === 12) node.quad12 = child;
+  else if (idx === 13) node.quad13 = child;
+  else if (idx === 14) node.quad14 = child;
+  else if (idx === 15) node.quad15 = child;
 }
