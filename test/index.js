@@ -1,6 +1,6 @@
 var harness = require('tap'),
     createQuadTree = require('../'),
-    Body = require('ngraph.physics.primitives').Body3d;
+    Body = require('ngraph.physics.primitives4d').Body4d;
 
 harness.test('insert and update update forces', function (t) {
   var tree = createQuadTree();
@@ -15,8 +15,8 @@ harness.test('insert and update update forces', function (t) {
 
 harness.test('Two bodies repel each other', function (t) {
   var tree = createQuadTree();
-  var bodyA = new Body(); bodyA.pos.x = 0; bodyA.pos.y = 0; bodyA.pos.z = 1;
-  var bodyB = new Body(); bodyB.pos.x = 0; bodyB.pos.y = 0; bodyB.pos.z = 2;
+  var bodyA = new Body(); bodyA.pos.x = 0; bodyA.pos.y = 0; bodyA.pos.z = 1; bodyA.pos.t = 1;
+  var bodyB = new Body(); bodyB.pos.x = 0; bodyB.pos.y = 0; bodyB.pos.z = 2; bodyB.pos.t = 2;
   debugger;
 
   tree.insertBodies([bodyA, bodyB]);
@@ -32,6 +32,9 @@ harness.test('Two bodies repel each other', function (t) {
   t.ok(bodyB.force.y === 0, 'Y-force for body B should be zero');
   t.ok(bodyA.force.x === 0, 'X-force for body A should be zero');
   t.ok(bodyB.force.x === 0, 'X-force for body B should be zero');
+  // ???
+  t.ok(bodyA.force.t === 0, 'T-force for body A should be zero');
+  t.ok(bodyB.force.t === 0, 'T-force for body B should be zero');
 
   t.end();
 });
