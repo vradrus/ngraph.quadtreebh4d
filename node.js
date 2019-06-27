@@ -1,5 +1,5 @@
 /**
- * Internal data structure to represent 3D QuadTree node
+ * Internal data structure to represent 4D QuadTree node
  */
 module.exports = function Node() {
   // body stored inside this node. In quad tree only leaf nodes (by construction)
@@ -7,6 +7,8 @@ module.exports = function Node() {
   this.body = null;
 
   // Child nodes are stored in quads. Each quad is presented by number:
+
+  // in PAST ???
   // Behind Z median:
   // 0 | 1
   // -----
@@ -15,6 +17,17 @@ module.exports = function Node() {
   // 4 | 5
   // -----
   // 6 | 7
+
+  // in FUTURE ???
+  // Behind Z median:
+  // 8  | 9
+  // -----
+  // 10 | 11
+  // In front of Z median:
+  // 12 | 13
+  // -----
+  // 14 | 15
+  
   this.quad0 = null;
   this.quad1 = null;
   this.quad2 = null;
@@ -23,6 +36,14 @@ module.exports = function Node() {
   this.quad5 = null;
   this.quad6 = null;
   this.quad7 = null;
+  this.quad8 = null;
+  this.quad9 = null;
+  this.quad10 = null;
+  this.quad11 = null;
+  this.quad12 = null;
+  this.quad13 = null;
+  this.quad14 = null;
+  this.quad15 = null;
 
   // Total mass of current node
   this.mass = 0;
@@ -31,6 +52,7 @@ module.exports = function Node() {
   this.massX = 0;
   this.massY = 0;
   this.massZ = 0;
+  this.massT = 0;
 
   // bounding box coordinates
   this.left = 0;
@@ -39,4 +61,6 @@ module.exports = function Node() {
   this.right = 0;
   this.front = 0;
   this.back = 0;
+  this.future = 0;
+  this.past = 0;
 };
