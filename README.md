@@ -1,10 +1,13 @@
-# ngraph.quadtreebh3d
+# ngraph.quadtreebh4d
 
-Quad Tree data structure for Barnes-Hut simulation in 3d space. Technically it should be named OctTree, since it's not a quad tree. But for parity with 2d interface it's currently called quadtree. Let me know if you think it should be changed :). 
+Quad Tree data structure for Barnes-Hut simulation in 4d space. Technically it should be named OctTree, since it's not a quad tree. But for parity with 2d interface it's currently called quadtree. Let me know if you think it should be changed :). 
 
-This project is part of [ngraph family](https://github.com/anvaka/ngraph). If you need 2d quad tree follow to [ngraph.quadtreebh](https://github.com/anvaka/ngraph.quadtreebh).
+This project is part of [ngraph family](https://github.com/anvaka/ngraph). 
 
-[![Build Status](https://travis-ci.org/anvaka/ngraph.quadtreebh3d.png?branch=master)](https://travis-ci.org/anvaka/ngraph.quadtreebh3d). 
+If you need 3d quad tree follow to [ngraph.quadtreebh3d](https://github.com/anvaka/ngraph.quadtreebh3d).
+If you need 2d quad tree follow to [ngraph.quadtreebh](https://github.com/anvaka/ngraph.quadtreebh).
+
+[![Build Status](https://travis-ci.org/anvaka/ngraph.quadtreebh4d.png?branch=master)](https://travis-ci.org/vradrus/ngraph.quadtreebh4d). 
 
 Reference
 ---------
@@ -14,15 +17,15 @@ Reference
 Usage
 =====
 ``` js
-var Body = require('ngraph.physics.primitives').Body3d;
-// Create new bodies at (1, 1, 1) and (0, 0, 0):
+var Body = require('ngraph.physics.primitives4d').Body4d;
+// Create new bodies at (1, 1, 1, 1) and (0, 0, 0, 0):
 var bodies = [];
-bodies.push(new Body(1, 1, 1));
-bodies.push(new Body(0, 0, 0));
+bodies.push(new Body(1, 1, 1, 1));
+bodies.push(new Body(0, 0, 0, 0));
 /* ... create more as you need ... */
 
 // build quad tree:
-var createQuadTree = require('ngraph.quadtreebh3d');
+var createQuadTree = require('ngraph.quadtreebh4d');
 var quadTree = createQuadTree();
 
 // insert bodies into the quad tree 
@@ -36,7 +39,7 @@ bodies.forEach(function(body) {
 console.dir(bodies[0].force);
 ```
 
-_Note:_ You don't necessary have to use [ngraph.physics.primitives](https://github.com/anvaka/ngraph.physics.primitives). That package merely defines an interface for a physical Body, which is expected by quad tree. As long as your Body object implements this interface (`mass`, `pos` and `force`) - you can use current quad tree structure to calculate forces.
+_Note:_ You don't necessary have to use [ngraph.physics.primitives4d](https://github.com/vradrus/ngraph.physics.primitives4d). That package merely defines an interface for a physical Body, which is expected by quad tree. As long as your Body object implements this interface (`mass`, `pos` and `force`) - you can use current quad tree structure to calculate forces.
 
 Configuring quad tree
 =====================
