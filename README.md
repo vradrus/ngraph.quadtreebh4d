@@ -36,7 +36,7 @@ quadTree.insertBodies(bodies); // performance: O(n * log n)
 bodies.forEach(function(body) {
   quadTree.updateBodyForce(body);
 });
-// At this point every body object has valid 3d force vecor
+// At this point every body object has valid 4d force vecor
 console.dir(bodies[0].force);
 ```
 
@@ -51,7 +51,7 @@ Quad tree allows to change two global options:
 
 You can pass these setting to quad tree as follows:
 ``` js
-var createQuadTree = require('ngraph.quadtreebh3d');
+var createQuadTree = require('ngraph.quadtreebh4d');
 var quadTree = createQuadTree({
   theta: 1.2,
   gravity: -10
@@ -60,14 +60,14 @@ var quadTree = createQuadTree({
 
 To query current options of the tree use:
 ``` js
-var createQuadTree = require('ngraph.quadtreebh3d');
+var createQuadTree = require('ngraph.quadtreebh4d');
 var quadTree = createQuadTree();
 console.dir(quadTree.options()); // prints { theta: 0.8, gravity: -1};
 ```
 
 To change options at run time:
 ``` js
-var createQuadTree = require('ngraph.quadtreebh3d');
+var createQuadTree = require('ngraph.quadtreebh4d');
 var quadTree = createQuadTree();
 quadTree.options({
   theta: 0.5,
@@ -78,9 +78,9 @@ quadTree.options({
 Mass of each body affects overall result of computation. You can tweak it when creating new bodies:
 
 ``` js
-var Body = require('ngraph.physics.primitives').Body;
-var earth = new Body(); earth.mass = 5.972;
-var sun   = new Body(); sun.mass = 1989000;
+var Body = require('ngraph.physics.primitives4d').Body4d;
+var earth = new Body4d(); earth.mass = 5.972;
+var sun   = new Body4d(); sun.mass = 1989000;
 ```
 
 # install
@@ -88,7 +88,7 @@ var sun   = new Body(); sun.mass = 1989000;
 With [npm](https://npmjs.org) do:
 
 ```
-npm install ngraph.quadtreebh3d
+npm install ngraph.quadtreebh4d
 ```
 
 # license
