@@ -1,4 +1,4 @@
-var Body = require('ngraph.physics.primitives').Body4d;
+var Body = require('ngraph.physics.primitives4d').Body4d;
 var Benchmark = require('benchmark');
 
 var createQuadTree = require('../'),
