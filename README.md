@@ -36,7 +36,7 @@ quadTree.insertBodies(bodies); // performance: O(n * log n)
 bodies.forEach(function(body) {
   quadTree.updateBodyForce(body);
 });
-// At this point every body object has valid 4d force vecor
+// At this point every body object has valid 4d force vector
 console.dir(bodies[0].force);
 ```
 
