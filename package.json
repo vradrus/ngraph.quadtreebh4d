@@ -1,7 +1,7 @@
 {
-  "name": "ngraph.quadtreebh3d",
+  "name": "ngraph.quadtreebh4d",
   "version": "1.0.0",
-  "description": "Quad Tree data structure for Barnes-Hut simulation in 3d space",
+  "description": "Quad Tree data structure for Barnes-Hut simulation in 4d space",
   "main": "index.js",
   "scripts": {
     "test": "tap test/*.js",
@@ -12,17 +12,17 @@
     "quadtree",
     "barnes",
     "hut",
-    "3d"
+    "4d"
   ],
-  "author": "Andrei Kashcha",
+  "author": "Andrei Kashcha, fork by Vladimir Radushevskii",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anvaka/ngraph.quadtreebh3d"
+    "url": "https://github.com/vradrus/ngraph.quadtreebh4d"
   },
   "devDependencies": {
     "benchmark": "~1.0.0",
-    "ngraph.physics.primitives": "^1.0.0",
+    "ngraph.physics.primitives4d": "^1.0.0",
     "tap": "^14.2.2"
   },
   "dependencies": {
